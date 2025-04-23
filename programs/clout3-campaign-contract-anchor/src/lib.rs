@@ -73,8 +73,9 @@ pub mod clout3_campaign_program {
         keywords: Vec<String>,
         begin_timestamp: i64,
         end_timestamp: i64,
+        with_white_list: bool,
     ) -> Result<()> {
-        campaign::init_campaign(ctx, id_db, campaign_counter, name, keywords, begin_timestamp, end_timestamp)
+        campaign::init_campaign(ctx, id_db, campaign_counter, name, keywords, begin_timestamp, end_timestamp, with_white_list)
     }
 
     pub fn init_campaign_handles(

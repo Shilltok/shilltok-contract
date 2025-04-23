@@ -10,7 +10,7 @@ use crate::{constants::{CAMPAIGN_NAME_MIN_SIZE,
     MAX_SIZE_OF_KEYWORD_STRING,
     MIN_TIME_BEFORE_STARTING_CAMPAIGN_SEC,
     MIN_CAMPAIGN_DURATION_SEC}, 
-    state::CampaignDatabase, state::CampaignInfo, state::CampaignHandles, state::CampaignState, state::CampaignAssets, state::Handle, state::AllowList, state::AdminConfig};
+    state::CampaignDatabase, state::CampaignInfo, state::CampaignHandles, state::CampaignState, state::CampaignAssets, state::Handle, state::CampaignWhiteListItem, state::AdminConfig};
 use crate::errors::CampaignError;
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -50,6 +50,7 @@ pub fn init_campaign(
     keywords: Vec<String>,
     begin_timestamp: i64,
     end_timestamp: i64,
+    with_white_list: bool,
 ) -> Result<()> {
     require!(keywords.len() <= MAX_NUMBER_OF_KEYWORDS, CampaignError::InvalidNumberOfKeywords);
     require!((name.len() >= CAMPAIGN_NAME_MIN_SIZE) && (name.len() <= CAMPAIGN_NAME_MAX_SIZE), CampaignError::InvalidCampaignNameSize);
@@ -63,6 +64,7 @@ pub fn init_campaign(
 
     (*ctx.accounts.campaign_info_account).user = ctx.accounts.user.key();
     (*ctx.accounts.campaign_info_account).name = name.clone();
+    (*ctx.accounts.campaign_info_account).white_list_enabled = with_white_list;
 
     (*ctx.accounts.campaign_info_account).keywords = Vec::new();
     for i in 0..keywords.len() {
@@ -322,6 +324,13 @@ pub struct RegisterHandle<'info> {
         bump
     )]
     campaign_handles_account: Box<Account<'info, CampaignHandles>>,
+
+    #[account(
+        seeds = [b"cpn_whli", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes(), user.key().as_ref()], 
+        bump,
+    )]
+    allow_list_item_account: Box<Account<'info, CampaignWhiteListItem>>,
+
     system_program: Program<'info, System>,
 }
 
@@ -336,6 +345,11 @@ pub fn register_handle(
     let clock: Clock = Clock::get()?;
     require!((*ctx.accounts.campaign_info_account).end_unix_timestamp > clock.unix_timestamp, CampaignError::NotOpen);
     require!((handle_name.len() >= MIN_HANDLE_SIZE) && (handle_name.len() <= MAX_HANDLE_SIZE), CampaignError::InvalidXHandle);
+
+    if (*ctx.accounts.campaign_info_account).white_list_enabled == true 
+    {
+        require!(ctx.accounts.allow_list_item_account.is_initialized);
+    }
 
     let mut i = 0;
     while i < (*ctx.accounts.campaign_handles_account).handles.len() {
@@ -542,5 +556,41 @@ fn claim_transfer_tokens_in_decimals(
     )?;
 
     msg!("Tokens transferred successfully.");
+    Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(_id_db: u64, _campaign_counter: u64, _allow_list_address: Pubkey)]
+pub struct AddWhiteListItem<'info> {
+    #[account(mut)]
+    user: Signer<'info>,
+    #[account(
+        mut,
+        has_one = user,
+        seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
+        bump,
+    )]
+    campaign_info_account: Box<Account<'info, CampaignInfo>>,
+
+    #[account(
+        init,
+        payer = user,
+        space = ANCHOR_DESCRIMINATOR_SIZE + CampaignInfo::INIT_SPACE,
+        seeds = [b"cpn_whli", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes(), _allow_list_address.as_ref()], 
+        bump,
+    )]
+    allow_list_item_account: Box<Account<'info, CampaignWhiteListItem>>,
+
+    // System program
+    system_program: Program<'info, System>,
+}
+
+pub fn add_white_list_item(
+    ctx: Context<OpenCampaign>,
+    _id_db: u64,
+    _campaign_counter: u64,
+    _allow_list_address: Pubkey,
+) -> Result<()> {
+    (*ctx.accounts.campaign_info_account).white_list_enabled = true;
     Ok(())
 }

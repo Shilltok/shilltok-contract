@@ -166,6 +166,7 @@ describe('create_campaign', () => {
         endTimestamp: new BN(Math.floor(Date.now() / 1000) + 86400),
         tokenAmount: new BN(120),
         serviceFeeIndex: new BN(0),
+        withWhiteList: Boolean(false),
         };   
 
         let campaignInitAccounts = {
@@ -183,6 +184,7 @@ describe('create_campaign', () => {
             params.keywords,
             params.beginTimestamp,
             params.endTimestamp,
+            params.withWhiteList,
         )
         .accounts(campaignInitAccounts)
         .signers([payer.payer]) 

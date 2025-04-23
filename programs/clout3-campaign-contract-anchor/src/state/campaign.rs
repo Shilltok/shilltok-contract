@@ -42,6 +42,7 @@ pub struct CampaignInfo {
     pub begin_unix_timestamp: i64,
     pub end_unix_timestamp: i64,
     pub state: CampaignState,   
+    pub white_list_enabled: bool,
 }
 
 #[account]
@@ -55,13 +56,13 @@ pub struct CampaignAssets {
 
 #[account]
 #[derive(InitSpace)]
+pub struct CampaignWhiteListItem {
+}
+
+#[account]
+#[derive(InitSpace)]
 pub struct CampaignHandles {
     #[max_len(MAX_NUMBER_OF_X_HANDLE_PER_CAMPAIGN)]
     pub handles: Vec<Handle>,
 }
 
-#[account]
-#[derive(InitSpace)]
-pub struct CampaignAllowlist {
-    pub allow_list: AllowList,
-}
