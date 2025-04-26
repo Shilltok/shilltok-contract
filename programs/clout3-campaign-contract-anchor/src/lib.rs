@@ -99,8 +99,10 @@ pub mod clout3_campaign_program {
         campaign_counter: u64,
         token_amount_in_decimals: u64,
         service_fee_index: u64,
+        token_name: String,
+        token_symbol: String,
     ) -> Result<()> {
-        campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize)
+        campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize, token_name, token_symbol)
     }
 
     pub fn register_handle(
