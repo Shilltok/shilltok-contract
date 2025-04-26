@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor'
 import { Program } from '@coral-xyz/anchor'
 import BN from "bn.js";
 import { Keypair } from '@solana/web3.js';
-import { Clout3CampaignProgram } from '../target/types/clout3_campaign_program'
+import { CloutCampaignProgram } from '../target/types/clout_campaign_program'
 import { expect } from 'chai'
 import { assert } from 'chai'
 
@@ -15,7 +15,7 @@ describe('create_admin_config', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
 
     it('create_admin_config_success', async () => {
         const idConfig = new BN(123456789);
@@ -108,7 +108,7 @@ describe('set_new_admin', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
     
     it('set_new_admin_success', async () => {
         const idConfig = new BN(123456791);
@@ -169,7 +169,7 @@ describe('update_admin', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
     
     it('update_admin_fail_no_call_to_set_new_admin', async () => {
         const idConfig = new BN(123456793);
@@ -302,7 +302,7 @@ describe('update_project_wallet', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
     
     it('update_project_wallet_fail_not_admin', async () => {
         const idConfig = new BN(123);

@@ -1,12 +1,12 @@
 [package]
-name = "clout3-campaign-contract-anchor"
+name = "clout-campaign-contract-anchor"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "clout3_campaign_contract_anchor"
+name = "clout_campaign_contract_anchor"
 
 [features]
 default = []

@@ -725,7 +725,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "clout3-campaign-contract-anchor"
+name = "clout-campaign-contract-anchor"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",

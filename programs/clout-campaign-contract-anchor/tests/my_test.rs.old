@@ -62,7 +62,7 @@ impl SetUpTest {
 
         // let mut validator = ProgramTest::default();
         // validator.add_program("anchor_counter", anchor_counter::ID, None);
-        let mut validator = ProgramTest::new("clout3_campaign_program", clout3_campaign_program::ID, None);
+        let mut validator = ProgramTest::new("clout_campaign_program", clout_campaign_program::ID, None);
 
         //create a new user and fund with 1 SOL
         //add the user to the validator / ledger

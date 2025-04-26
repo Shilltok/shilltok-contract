@@ -10,7 +10,7 @@ pub mod errors;
 declare_id!("EpgXpXKz4QHfGxr5QnpELaXu9quNahhfJzYikLDPGxkz");
 
 #[program]
-pub mod clout3_campaign_program {
+pub mod clout_campaign_program {
     use super::*;
 
     // Admin config instructions

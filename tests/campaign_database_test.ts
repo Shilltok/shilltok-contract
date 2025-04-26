@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor'
 import { Program } from '@coral-xyz/anchor'
 import BN from "bn.js";
 import { Keypair } from '@solana/web3.js';
-import { Clout3CampaignProgram } from '../target/types/clout3_campaign_program'
+import { CloutCampaignProgram } from '../target/types/clout_campaign_program'
 import { expect } from 'chai'
 import { assert } from 'chai'
 
@@ -45,7 +45,7 @@ describe('create_campaign_database', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
     const idConfig = new BN(1234567891234);
     const id = new BN(23482736);
 

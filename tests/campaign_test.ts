@@ -9,7 +9,7 @@ import {
     SystemProgram,
     Keypair,
   } from "@solana/web3.js"; // Import SendTransactionError
-import { Clout3CampaignProgram } from '../target/types/clout3_campaign_program'
+import { CloutCampaignProgram } from '../target/types/clout_campaign_program'
 import { TransferTokens } from '../target/types/transfer_tokens'
 import { expect } from 'chai'
 import * as splToken from "@solana/spl-token";
@@ -85,7 +85,7 @@ describe('create_campaign', () => {
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
-    const program = anchor.workspace.Clout3CampaignProgram as Program<Clout3CampaignProgram>
+    const program = anchor.workspace.CloutCampaignProgram as Program<CloutCampaignProgram>
     const programHelperToken = anchor.workspace.TransferTokens as Program<TransferTokens>
 
     const idDb = new BN(123456792);
