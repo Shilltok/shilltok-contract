@@ -73,6 +73,8 @@ pub fn init_campaign(
     (*ctx.accounts.campaign_info_account).begin_unix_timestamp = begin_timestamp;
     (*ctx.accounts.campaign_info_account).end_unix_timestamp = end_timestamp;
     (*ctx.accounts.campaign_info_account).state = CampaignState::Initialized;
+    (*ctx.accounts.campaign_info_account).id_db = id_db;
+    (*ctx.accounts.campaign_info_account).campaign_counter = campaign_counter;
 
     (*ctx.accounts.campaign_database_account).counter = (*ctx.accounts.campaign_database_account).counter.checked_add(1).unwrap();
 

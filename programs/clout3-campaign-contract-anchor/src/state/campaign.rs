@@ -41,7 +41,9 @@ pub struct CampaignInfo {
     pub keywords: Vec<String>,
     pub begin_unix_timestamp: i64,
     pub end_unix_timestamp: i64,
-    pub state: CampaignState,   
+    pub state: CampaignState,
+    pub id_db: u64,
+    pub campaign_counter: u64,
 }
 
 #[account]
