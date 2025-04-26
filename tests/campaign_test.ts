@@ -166,6 +166,8 @@ describe('create_campaign', () => {
         endTimestamp: new BN(Math.floor(Date.now() / 1000) + 86400),
         tokenAmount: new BN(120),
         serviceFeeIndex: new BN(0),
+        tokenName: "MyToken",
+        tokenSymbol: "MTO",
         };   
 
         let campaignInitAccounts = {
@@ -258,7 +260,9 @@ describe('create_campaign', () => {
             params.idDb,
             params.campaignCounter,
             params.tokenAmount,
-            params.serviceFeeIndex
+            params.serviceFeeIndex,
+            params.tokenName,
+            params.tokenSymbol,
         )
         .accounts(openCampaignAccounts)
         .signers([payer.payer]) 

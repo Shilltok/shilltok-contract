@@ -13,6 +13,9 @@ pub const MIN_HANDLE_SIZE: usize = 2;
 pub const MAX_HANDLE_SIZE: usize = 300;
 pub const MIN_NUMBER_OF_CAMPAIGN_TOKEN: usize = 100;
 pub const MAX_PUBKEY_IN_ALLOWLIST: usize = 100;
+pub const MIN_TOKEN_NAME_AND_SYMBOL_SIZE: usize = 3;
+pub const MAX_TOKEN_NAME_SIZE: usize = 50;
+pub const MAX_TOKEN_SYMBOL_SIZE: usize = 10;
 
 pub const MAX_NUMBER_OF_KEYWORDS: usize = 3;
 pub const MIN_SIZE_OF_KEYWORD_STRING: usize = 2;

@@ -54,6 +54,10 @@ pub enum CampaignError {
     InvalidNumberOfKeywords,
     #[msg("Campaign: Invalid keyword size")]
     InvalidKeywordSize,
+    #[msg("Campaign: Invalid token name")]
+    InvalidCampaignTokenName,
+    #[msg("Campaign: Invalid token symbol")]
+    InvalidCampaignTokenSymbol,
 }
 
 #[error_code]

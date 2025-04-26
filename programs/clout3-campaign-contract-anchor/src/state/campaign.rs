@@ -1,5 +1,13 @@
 use anchor_lang::prelude::*;
-use crate::constants::{CAMPAIGN_NAME_MAX_SIZE, MAX_NUMBER_OF_X_HANDLE_PER_CAMPAIGN, MAX_HANDLE_SIZE, MAX_PUBKEY_IN_ALLOWLIST, MAX_NUMBER_OF_KEYWORDS, MAX_SIZE_OF_KEYWORD_STRING};
+use crate::constants::{
+    CAMPAIGN_NAME_MAX_SIZE, 
+    MAX_NUMBER_OF_X_HANDLE_PER_CAMPAIGN, 
+    MAX_HANDLE_SIZE, 
+    MAX_PUBKEY_IN_ALLOWLIST, 
+    MAX_NUMBER_OF_KEYWORDS, 
+    MAX_SIZE_OF_KEYWORD_STRING, 
+    MAX_TOKEN_NAME_SIZE, 
+    MAX_TOKEN_SYMBOL_SIZE};
 
 use super::ServiceFee;
 
@@ -49,6 +57,10 @@ pub struct CampaignInfo {
 #[account]
 #[derive(InitSpace)]
 pub struct CampaignAssets {
+    #[max_len(MAX_TOKEN_NAME_SIZE)]
+    pub token_name: String,
+    #[max_len(MAX_TOKEN_SYMBOL_SIZE)]
+    pub token_symbol: String,
     pub mint_account_key: Pubkey,
     pub token_amount_in_decimals: u64,
     pub remaining_token: u64,

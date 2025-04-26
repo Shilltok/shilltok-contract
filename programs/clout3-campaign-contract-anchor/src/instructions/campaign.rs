@@ -9,7 +9,10 @@ use crate::{constants::{CAMPAIGN_NAME_MIN_SIZE,
     MIN_SIZE_OF_KEYWORD_STRING,
     MAX_SIZE_OF_KEYWORD_STRING,
     MIN_TIME_BEFORE_STARTING_CAMPAIGN_SEC,
-    MIN_CAMPAIGN_DURATION_SEC}, 
+    MIN_CAMPAIGN_DURATION_SEC,
+    MIN_TOKEN_NAME_AND_SYMBOL_SIZE,
+    MAX_TOKEN_NAME_SIZE,
+    MAX_TOKEN_SYMBOL_SIZE}, 
     state::CampaignDatabase, state::CampaignInfo, state::CampaignHandles, state::CampaignState, state::CampaignAssets, state::Handle, state::AllowList, state::AdminConfig};
 use crate::errors::CampaignError;
 use anchor_lang::prelude::*;
@@ -225,6 +228,8 @@ pub fn open_campaign(
     campaign_counter: u64,
     token_amount_in_decimals: u64,
     service_fee_index: usize,
+    token_name: String,
+    token_symbol: String,
 ) -> Result<()> {
     require!(ctx.accounts.campaign_info_account.state == CampaignState::AssetsReady, CampaignError::CampaignInvalidState);
     let campaign_database = &ctx.accounts.campaign_database_account;
@@ -232,6 +237,9 @@ pub fn open_campaign(
     require!(((*campaign_database).counter - 1) == campaign_counter, CampaignError::InvalidCampaignCounter);
     require!(service_fee_index < (*campaign_database).service_fee.len(), CampaignError::InvalidServiceFeeIndex);
   
+    require!((token_name.len() >= MIN_TOKEN_NAME_AND_SYMBOL_SIZE) && (token_name.len() <= MAX_TOKEN_NAME_SIZE), CampaignError::InvalidCampaignTokenName);
+    require!((token_symbol.len() >= MIN_TOKEN_NAME_AND_SYMBOL_SIZE) && (token_symbol.len() <= MAX_TOKEN_SYMBOL_SIZE), CampaignError::InvalidCampaignTokenSymbol);
+
     msg!("Len: {}", (*campaign_database).service_fee.len());
     require!(campaign_database.service_fee[service_fee_index].token_fee_percentage <= 100, CampaignError::InvalidServiceFee);
 
@@ -255,6 +263,8 @@ pub fn open_campaign(
     (*ctx.accounts.campaign_assets_account).mint_account_key = ctx.accounts.mint_account.key();
     (*ctx.accounts.campaign_assets_account).token_amount_in_decimals = token_amount_in_decimals;
     (*ctx.accounts.campaign_assets_account).remaining_token = 0;
+    (*ctx.accounts.campaign_assets_account).token_name = token_name;
+    (*ctx.accounts.campaign_assets_account).token_symbol = token_symbol;
     (*ctx.accounts.campaign_assets_account).copied_service_fee = ctx.accounts.campaign_database_account.service_fee[service_fee_index].clone();
 
     Ok(())
