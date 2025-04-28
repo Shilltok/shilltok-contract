@@ -252,7 +252,7 @@ pub fn open_campaign(
 
     // Transfer token (fee and storage for reward)
     require!(token_amount_in_decimals >= MIN_NUMBER_OF_CAMPAIGN_TOKEN as u64, CampaignError::NotEnoughToken);
-    let fee_token_to_transfer: u64 = 0;
+    let mut fee_token_to_transfer: u64 = 0;
     if campaign_database.service_fee[service_fee_index].token_fee_percentage > 0 {
         fee_token_to_transfer = token_amount_in_decimals * campaign_database.service_fee[service_fee_index].token_fee_percentage as u64 / 100;
         campaign_transfer_tokens_in_decimals(&ctx, fee_token_to_transfer, true)?;
