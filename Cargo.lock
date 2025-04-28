@@ -725,7 +725,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "clout-campaign-contract-anchor"
+name = "shilltok-campaign-contract-anchor"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",

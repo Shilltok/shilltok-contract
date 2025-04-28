@@ -6,7 +6,7 @@ skip-lint = false
 
 [programs.localnet]
 transfer_tokens = "X5oDujBzrhbChLbDZi2KeZU26rZ16HvJfKMWZSs7TMp"
-clout_campaign_contract_anchor = "EpgXpXKz4QHfGxr5QnpELaXu9quNahhfJzYikLDPGxkz"
+shilltok_campaign_contract_anchor = "EpgXpXKz4QHfGxr5QnpELaXu9quNahhfJzYikLDPGxkz"
 
 
 [registry]
