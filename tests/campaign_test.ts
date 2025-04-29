@@ -54,7 +54,7 @@ async function create_campaign_database(payer, idConfig, idDb, program, adminCon
         [Buffer.from('campg-db'), idDb.toArrayLike(Buffer, "le", 8)],
         program.programId,
     )
-    const serviceFees = [{lamportFee:0, tokenFeePercentage: 10}];
+    const serviceFees = [{lamportFee:1000, tokenFeePercentage: 10}];
     //anchor automatically fills the user of Account type Signer with the provider and the SystemProgram
     await program.methods
         .createCampaignDatabase(idConfig, idDb, serviceFees)

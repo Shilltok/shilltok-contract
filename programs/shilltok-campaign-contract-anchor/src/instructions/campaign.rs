@@ -20,6 +20,7 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
+use anchor_lang::system_program;
 
 #[derive(Accounts)]
 #[instruction(id_db: u64, campaign_counter: u64)]
@@ -246,8 +247,14 @@ pub fn open_campaign(
     // Transfer SOL if required
     if campaign_database.service_fee[service_fee_index].lamport_fee > 0
     {
-        **ctx.accounts.user.try_borrow_mut_lamports()? -= campaign_database.service_fee[service_fee_index].lamport_fee as u64;
-        **ctx.accounts.project_wallet.try_borrow_mut_lamports()? += campaign_database.service_fee[service_fee_index].lamport_fee as u64;
+        let cpi_context = CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.user.to_account_info().clone(),
+                to: ctx.accounts.project_wallet.to_account_info().clone(),
+            },
+        );
+        system_program::transfer(cpi_context, campaign_database.service_fee[service_fee_index].lamport_fee as u64)?;
     }
 
     // Transfer token (fee and storage for reward)
