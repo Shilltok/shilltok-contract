@@ -61,6 +61,7 @@ pub struct CampaignAssets {
     pub token_name: String,
     #[max_len(MAX_TOKEN_SYMBOL_SIZE)]
     pub token_symbol: String,
+    pub token_decimals: u8,
     pub mint_account_key: Pubkey,
     pub token_amount_in_decimals: u64,
     pub remaining_token: u64,

@@ -231,6 +231,7 @@ pub fn open_campaign(
     service_fee_index: usize,
     token_name: String,
     token_symbol: String,
+    token_decimals: u8,
 ) -> Result<()> {
     require!(ctx.accounts.campaign_info_account.state == CampaignState::AssetsReady, CampaignError::CampaignInvalidState);
     let campaign_database = &ctx.accounts.campaign_database_account;
@@ -273,6 +274,7 @@ pub fn open_campaign(
     (*ctx.accounts.campaign_assets_account).remaining_token = 0;
     (*ctx.accounts.campaign_assets_account).token_name = token_name;
     (*ctx.accounts.campaign_assets_account).token_symbol = token_symbol;
+    (*ctx.accounts.campaign_assets_account).token_decimals = token_decimals;
     (*ctx.accounts.campaign_assets_account).copied_service_fee = ctx.accounts.campaign_database_account.service_fee[service_fee_index].clone();
 
     Ok(())

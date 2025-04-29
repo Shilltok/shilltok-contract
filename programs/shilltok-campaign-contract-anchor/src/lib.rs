@@ -101,8 +101,9 @@ pub mod shilltok_campaign_program {
         service_fee_index: u64,
         token_name: String,
         token_symbol: String,
+        token_decimals: u8,
     ) -> Result<()> {
-        campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize, token_name, token_symbol)
+        campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize, token_name, token_symbol, token_decimals)
     }
 
     pub fn register_handle(

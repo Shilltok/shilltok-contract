@@ -168,6 +168,7 @@ describe('create_campaign', () => {
         serviceFeeIndex: new BN(0),
         tokenName: "MyToken",
         tokenSymbol: "MTO",
+        tokenDecimals: 9,
         };   
 
         let campaignInitAccounts = {
@@ -263,6 +264,7 @@ describe('create_campaign', () => {
             params.serviceFeeIndex,
             params.tokenName,
             params.tokenSymbol,
+            params.tokenDecimals,
         )
         .accounts(openCampaignAccounts)
         .signers([payer.payer]) 
