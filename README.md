@@ -64,3 +64,29 @@ graph TD
     linkStyle 2 stroke:#d32f2f,stroke-width:2px,color:#d32f2f
     linkStyle 3 stroke:#1976d2,stroke-width:2px,color:#1976d2
 ```
+
+## Sequence diagram
+```mermaid
+sequenceDiagram
+    participant PO as ProjectOwner
+    participant Frontend
+    participant Contract as SolanaProgram
+    participant SH as Shiller
+    participant BE as Backend
+
+    PO->>Frontend: Fill form & submit campaign
+    Frontend->>Contract: init_campaign, open_campaign
+    Contract-->>PO: Campaign created
+
+    SH->>Frontend: Select campaign & register handle
+    Frontend->>Contract: register_handle
+    Contract-->>SH: Handle registered
+
+    BE->>TwitterAPI: Extract tweets & views
+    BE->>Contract: admin_send_reward_percentages
+    Contract-->>BE: Percentages stored
+
+    SH->>Frontend: Claim reward
+    Frontend->>Contract: claim
+    Contract-->>SH: Token transfer
+```
