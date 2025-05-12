@@ -80,3 +80,9 @@ pub struct CampaignHandles {
 pub struct CampaignAllowlist {
     pub allow_list: AllowList,
 }
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq)]
+pub struct UserReward {
+    pub name: String,
+    pub percentage: u8,
+}

@@ -13,7 +13,7 @@ use crate::{constants::{CAMPAIGN_NAME_MIN_SIZE,
     MIN_TOKEN_NAME_AND_SYMBOL_SIZE,
     MAX_TOKEN_NAME_SIZE,
     MAX_TOKEN_SYMBOL_SIZE}, 
-    state::CampaignDatabase, state::CampaignInfo, state::CampaignHandles, state::CampaignState, state::CampaignAssets, state::Handle, state::AllowList, state::AdminConfig};
+    state::CampaignDatabase, state::CampaignInfo, state::CampaignHandles, state::CampaignState, state::CampaignAssets, state::UserReward, state::Handle, state::AllowList, state::AdminConfig};
 use crate::errors::CampaignError;
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -381,60 +381,6 @@ pub fn register_handle(
 }
 
 #[derive(Accounts)]
-#[instruction(_id_config: u64, _id_db: u64, _campaign_counter: u64)]
-pub struct AdminSendRewardPercentages<'info> {
-    #[account(
-        has_one = admin,
-        seeds = [b"admin-cf", &_id_config.to_le_bytes()],
-        bump
-    )]
-    admin_config: Account<'info, AdminConfig>,
-    admin: Signer<'info>,
-    #[account(
-        mut,
-        seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
-        bump
-    )]
-    campaign_info_account: Box<Account<'info, CampaignInfo>>,
-    #[account(
-        mut,
-        seeds = [b"cpn_hndl", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
-        bump
-    )]
-    campaign_handles_account: Box<Account<'info, CampaignHandles>>,
-    system_program: Program<'info, System>,
-}
-
-pub fn admin_send_reward_percentages(
-    ctx: Context<RegisterHandle>,
-    _id_config: u64,
-    _id_db: u64,
-    _campaign_counter: u64,
-    rewards: Vec<(String, u8)>,
-) -> Result<()> {
-    require!((*ctx.accounts.campaign_info_account).state == CampaignState::Open, CampaignError::NotOpen);
-    require!((*ctx.accounts.campaign_handles_account).handles.len() == rewards.len(), CampaignError::InvalidHandles);
-    let clock: Clock = Clock::get()?;
-    require!((*ctx.accounts.campaign_info_account).end_unix_timestamp < clock.unix_timestamp, CampaignError::TimeNotElapsed);
-
-    let mut i = 0;
-    let mut percentage_acc = 0;
-
-    while i < (*ctx.accounts.campaign_handles_account).handles.len() {
-        let (name, percentage) = rewards[i].clone();
-        require!((*ctx.accounts.campaign_handles_account).handles[i].handle_name == name, CampaignError::InvalidHandles);
-        percentage_acc += percentage;
-        (*ctx.accounts.campaign_handles_account).handles[i].percent_reward = percentage;
-        (*ctx.accounts.campaign_handles_account).handles[i].claimed = false;
-        i = i + 1;
-    }
-    require!(percentage_acc == 100, CampaignError::InvalidPercentagesForRewards);
-
-    (*ctx.accounts.campaign_info_account).state = CampaignState::Closed;
-    Ok(())
-}
-
-#[derive(Accounts)]
 #[instruction(_id_db: u64, _campaign_counter: u64)]
 pub struct Claim<'info> {
     #[account(mut)]
@@ -566,3 +512,57 @@ fn claim_transfer_tokens_in_decimals(
     msg!("Tokens transferred successfully.");
     Ok(())
 }
+
+#[derive(Accounts)]
+#[instruction(_id_config: u64, _id_db: u64, _campaign_counter: u64)]
+pub struct AdminSendRewardPercentages<'info> {
+    #[account(
+        has_one = admin,
+        seeds = [b"admin-cf", &_id_config.to_le_bytes()],
+        bump
+    )]
+    admin_config: Account<'info, AdminConfig>,
+    admin: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
+        bump
+    )]
+    campaign_info_account: Box<Account<'info, CampaignInfo>>,
+    #[account(
+        mut,
+        seeds = [b"cpn_hndl", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
+        bump
+    )]
+    campaign_handles_account: Box<Account<'info, CampaignHandles>>,
+    system_program: Program<'info, System>,
+}
+
+pub fn admin_send_reward_percentages(
+    ctx: Context<AdminSendRewardPercentages>,
+    _id_config: u64,
+    _id_db: u64,
+    _campaign_counter: u64,
+    rewards: Vec<UserReward>,
+) -> Result<()> {
+    require!((*ctx.accounts.campaign_info_account).state == CampaignState::Open, CampaignError::NotOpen);
+    require!((*ctx.accounts.campaign_handles_account).handles.len() == rewards.len(), CampaignError::InvalidHandles);
+    let clock: Clock = Clock::get()?;
+    require!((*ctx.accounts.campaign_info_account).end_unix_timestamp < clock.unix_timestamp, CampaignError::TimeNotElapsed);
+
+    let mut i = 0;
+    let mut percentage_acc: u8 = 0;
+
+    while i < (*ctx.accounts.campaign_handles_account).handles.len() {
+        require!((*ctx.accounts.campaign_handles_account).handles[i].handle_name == rewards[i].name, CampaignError::InvalidHandles);
+        percentage_acc += rewards[i].percentage;
+        (*ctx.accounts.campaign_handles_account).handles[i].percent_reward = rewards[i].percentage;
+        (*ctx.accounts.campaign_handles_account).handles[i].claimed = false;
+        i = i + 1;
+    }
+    require!(percentage_acc == 100, CampaignError::InvalidPercentagesForRewards);
+
+    (*ctx.accounts.campaign_info_account).state = CampaignState::Closed;
+    Ok(())
+}
+

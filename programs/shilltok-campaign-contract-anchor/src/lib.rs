@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use instructions::*;
 use crate::state::ServiceFee;
+use crate::state::UserReward;
 
 pub mod constants;
 pub mod instructions;
@@ -106,6 +107,16 @@ pub mod shilltok_campaign_program {
         campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize, token_name, token_symbol, token_decimals)
     }
 
+    pub fn admin_send_reward_percentages(
+        ctx: Context<AdminSendRewardPercentages>,
+        id_config: u64,
+        id_db: u64,
+        campaign_counter: u64,
+        rewards: Vec<UserReward>,
+    ) -> Result<()> {
+        campaign::admin_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards)
+    }
+
     pub fn register_handle(
         ctx: Context<RegisterHandle>,
         id_db: u64,
@@ -113,16 +124,6 @@ pub mod shilltok_campaign_program {
         handle_name: String,
     ) -> Result<()> {
         campaign::register_handle(ctx, id_db, campaign_counter, handle_name)
-    }
-
-    pub fn admin_send_reward_percentages(
-        ctx: Context<RegisterHandle>,
-        id_config: u64,
-        id_db: u64,
-        campaign_counter: u64,
-        rewards: Vec<(String, u8)>,
-    ) -> Result<()> {
-        campaign::admin_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards)
     }
 
     pub fn claim(
