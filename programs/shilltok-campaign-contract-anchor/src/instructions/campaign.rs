@@ -496,15 +496,26 @@ fn claim_transfer_tokens_in_decimals(
         "To Token Address: {}", &ctx.accounts.recipient_token_account.key()
     );
 
+    let id_db_bytes = ctx.accounts.campaign_info_account.id_db.to_le_bytes();
+    let campaign_counter_bytes = ctx.accounts.campaign_info_account.campaign_counter.to_le_bytes();
+
+    let seeds: &[&[u8]] = &[
+        b"cpn_asst",
+        &id_db_bytes,
+        &campaign_counter_bytes,
+        &[ctx.bumps.campaign_assets_account], // Bump as a single byte slice
+    ];
+
     // Invoke the transfer instruction on the token program
     transfer(
-        CpiContext::new(
+        CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             Transfer {
                 from: ctx.accounts.sender_token_account.to_account_info(),
                 to: ctx.accounts.recipient_token_account.to_account_info(),
-                authority: ctx.accounts.sender.to_account_info(),
+                authority: ctx.accounts.campaign_assets_account.to_account_info(),
             },
+            &[seeds],
         ),
         token_amount_in_decimals, // Transfer amount, adjust for decimals
     )?;
