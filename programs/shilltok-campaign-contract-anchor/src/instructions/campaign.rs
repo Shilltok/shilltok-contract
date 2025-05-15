@@ -271,7 +271,7 @@ pub fn open_campaign(
     (*ctx.accounts.campaign_info_account).state = CampaignState::Open;
     (*ctx.accounts.campaign_assets_account).mint_account_key = ctx.accounts.mint_account.key();
     (*ctx.accounts.campaign_assets_account).token_amount_in_decimals = token_amount_in_decimals;
-    (*ctx.accounts.campaign_assets_account).remaining_token = 0;
+    (*ctx.accounts.campaign_assets_account).remaining_token = token_amount_in_decimals;
     (*ctx.accounts.campaign_assets_account).token_name = token_name;
     (*ctx.accounts.campaign_assets_account).token_symbol = token_symbol;
     (*ctx.accounts.campaign_assets_account).token_decimals = token_decimals;
@@ -445,7 +445,7 @@ pub fn claim(
             require!(!(*ctx.accounts.campaign_handles_account).handles[i].claimed, CampaignError::AlreadyClaimed);
             require!(!(*ctx.accounts.campaign_handles_account).handles[i].percent_reward > 0, CampaignError::NoReward);
 
-            let reward = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals / (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 * 100;
+            let reward: u64 = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals / (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 * 100;
             let to_transfer = {
                 if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
                 {
