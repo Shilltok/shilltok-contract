@@ -58,6 +58,10 @@ pub enum CampaignError {
     InvalidCampaignTokenName,
     #[msg("Campaign: Invalid token symbol")]
     InvalidCampaignTokenSymbol,
+    #[msg("Campaign: Invalid creator")]
+    InvalidCreator,
+    #[msg("Campaign: Already refunded")]
+    AlreadyRefunded,
 }
 
 #[error_code]

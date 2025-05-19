@@ -74,8 +74,9 @@ pub mod shilltok_campaign_program {
         keywords: Vec<String>,
         begin_timestamp: i64,
         end_timestamp: i64,
+        score_minimal: u64,
     ) -> Result<()> {
-        campaign::init_campaign(ctx, id_db, campaign_counter, name, keywords, begin_timestamp, end_timestamp)
+        campaign::init_campaign(ctx, id_db, campaign_counter, name, keywords, begin_timestamp, end_timestamp, score_minimal)
     }
 
     pub fn init_campaign_handles(
@@ -113,8 +114,9 @@ pub mod shilltok_campaign_program {
         id_db: u64,
         campaign_counter: u64,
         rewards: Vec<UserReward>,
+        score: u64,
     ) -> Result<()> {
-        campaign::admin_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards)
+        campaign::admin_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards, score)
     }
 
     pub fn register_handle(

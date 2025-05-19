@@ -54,6 +54,7 @@ pub fn init_campaign(
     keywords: Vec<String>,
     begin_timestamp: i64,
     end_timestamp: i64,
+    score_minimal: u64,
 ) -> Result<()> {
     require!(keywords.len() <= MAX_NUMBER_OF_KEYWORDS, CampaignError::InvalidNumberOfKeywords);
     require!((name.len() >= CAMPAIGN_NAME_MIN_SIZE) && (name.len() <= CAMPAIGN_NAME_MAX_SIZE), CampaignError::InvalidCampaignNameSize);
@@ -79,6 +80,9 @@ pub fn init_campaign(
     (*ctx.accounts.campaign_info_account).state = CampaignState::Initialized;
     (*ctx.accounts.campaign_info_account).id_db = id_db;
     (*ctx.accounts.campaign_info_account).campaign_counter = campaign_counter;
+    (*ctx.accounts.campaign_info_account).creator = ctx.accounts.user.key();
+    (*ctx.accounts.campaign_info_account).score_minimal = score_minimal;
+    (*ctx.accounts.campaign_info_account).actual_score = 0;
 
     (*ctx.accounts.campaign_database_account).counter = (*ctx.accounts.campaign_database_account).counter.checked_add(1).unwrap();
 
@@ -275,6 +279,7 @@ pub fn open_campaign(
     (*ctx.accounts.campaign_assets_account).token_name = token_name;
     (*ctx.accounts.campaign_assets_account).token_symbol = token_symbol;
     (*ctx.accounts.campaign_assets_account).token_decimals = token_decimals;
+     (*ctx.accounts.campaign_assets_account).refunded = false;
     (*ctx.accounts.campaign_assets_account).copied_service_fee = ctx.accounts.campaign_database_account.service_fee[service_fee_index].clone();
 
     Ok(())
@@ -381,6 +386,78 @@ pub fn register_handle(
 }
 
 #[derive(Accounts)]
+#[instruction(_id_config: u64, _id_db: u64, _campaign_counter: u64)]
+pub struct AdminSendRewardPercentages<'info> {
+    #[account(
+        has_one = admin,
+        seeds = [b"admin-cf", &_id_config.to_le_bytes()],
+        bump
+    )]
+    admin_config: Account<'info, AdminConfig>,
+
+    admin: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
+        bump
+    )]
+    campaign_info_account: Box<Account<'info, CampaignInfo>>,
+
+    #[account(
+        mut,
+        seeds = [b"cpn_hndl", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
+        bump
+    )]
+    campaign_handles_account: Box<Account<'info, CampaignHandles>>,
+
+    system_program: Program<'info, System>,
+}
+
+pub fn admin_send_reward_percentages(
+    ctx: Context<AdminSendRewardPercentages>,
+    _id_config: u64,
+    _id_db: u64,
+    _campaign_counter: u64,
+    rewards: Vec<UserReward>,
+    score: u64,
+) -> Result<()> {
+    require!((*ctx.accounts.campaign_info_account).state == CampaignState::Open, CampaignError::NotOpen);
+    require!((*ctx.accounts.campaign_handles_account).handles.len() == rewards.len(), CampaignError::InvalidHandles);
+    let clock: Clock = Clock::get()?;
+    require!((*ctx.accounts.campaign_info_account).end_unix_timestamp < clock.unix_timestamp, CampaignError::TimeNotElapsed);
+
+    (*ctx.accounts.campaign_info_account).actual_score = score;
+    if score < (*ctx.accounts.campaign_info_account).score_minimal {
+        // Not enough score
+        (*ctx.accounts.campaign_info_account).state = CampaignState::ClosedWithNoReward;
+        return Ok(())
+    }
+    else {
+        let mut i = 0;
+        let mut percentage_acc: u8 = 0;
+
+        while i < (*ctx.accounts.campaign_handles_account).handles.len() {
+            require!((*ctx.accounts.campaign_handles_account).handles[i].handle_name == rewards[i].name, CampaignError::InvalidHandles);
+            percentage_acc += rewards[i].percentage;
+            (*ctx.accounts.campaign_handles_account).handles[i].percent_reward = rewards[i].percentage;
+            (*ctx.accounts.campaign_handles_account).handles[i].claimed = false;
+            i = i + 1;
+        }
+
+        if percentage_acc == 0 {
+            // No tweet. Send back tokens to project creator.
+            (*ctx.accounts.campaign_info_account).state = CampaignState::ClosedWithNoReward;
+            return Ok(())
+        }
+        else {
+            require!(percentage_acc == 100, CampaignError::InvalidPercentagesForRewards);
+        }
+    }
+    (*ctx.accounts.campaign_info_account).state = CampaignState::Closed;
+    Ok(())
+}
+
+#[derive(Accounts)]
 #[instruction(_id_db: u64, _campaign_counter: u64)]
 pub struct Claim<'info> {
     #[account(mut)]
@@ -435,47 +512,58 @@ pub fn claim(
     _id_db: u64,
     _campaign_counter: u64,
 ) -> Result<()> {
-    require!(ctx.accounts.mint_account.key() == (*ctx.accounts.campaign_assets_account).mint_account_key, CampaignError::InvalidMintAccount);
-    require!((*ctx.accounts.campaign_info_account).state == CampaignState::Closed, CampaignError::NotOpen);
+    if (*ctx.accounts.campaign_info_account).state == CampaignState::ClosedWithNoReward {
+        require!((*ctx.accounts.campaign_info_account).creator == (*ctx.accounts.sender).key(), CampaignError::InvalidCreator);
+        require!((*ctx.accounts.campaign_assets_account).refunded == false, CampaignError::AlreadyRefunded);
 
-    let mut i = 0;
-    while i < (*ctx.accounts.campaign_handles_account).handles.len() {
-        if (*ctx.accounts.campaign_handles_account).handles[i].handle_pubkey == ctx.accounts.sender.key()
-        {
-            require!(!(*ctx.accounts.campaign_handles_account).handles[i].claimed, CampaignError::AlreadyClaimed);
-            require!(!(*ctx.accounts.campaign_handles_account).handles[i].percent_reward > 0, CampaignError::NoReward);
+        claim_transfer_tokens_in_decimals(&ctx, (*ctx.accounts.campaign_assets_account).token_amount_in_decimals)?;
+        (*ctx.accounts.campaign_assets_account).refunded = true;
 
-            let reward: u64 = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals / (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 * 100;
-            let to_transfer = {
-                if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
-                {
-                    reward
-                }
-                else 
-                {
-                    (*ctx.accounts.campaign_assets_account).remaining_token 
-                }
-            };
-
-            claim_transfer_tokens_in_decimals(&ctx, to_transfer)?;
-
-            (*ctx.accounts.campaign_handles_account).handles[i].claimed = true;
-            (*ctx.accounts.campaign_assets_account).remaining_token = {
-                if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
-                {
-                    (*ctx.accounts.campaign_assets_account).remaining_token - reward
-                }
-                else 
-                {
-                    0    
-                }
-            };
-            return Ok(())
-        }
-        i = i + 1;
+        return Ok(())
     }
+    else {
+        require!(ctx.accounts.mint_account.key() == (*ctx.accounts.campaign_assets_account).mint_account_key, CampaignError::InvalidMintAccount);
+        require!((*ctx.accounts.campaign_info_account).state == CampaignState::Closed, CampaignError::NotOpen);
 
-    err!(CampaignError::NotRegistered)
+        let mut i = 0;
+        while i < (*ctx.accounts.campaign_handles_account).handles.len() {
+            if (*ctx.accounts.campaign_handles_account).handles[i].handle_pubkey == ctx.accounts.sender.key()
+            {
+                require!(!(*ctx.accounts.campaign_handles_account).handles[i].claimed, CampaignError::AlreadyClaimed);
+                require!(!(*ctx.accounts.campaign_handles_account).handles[i].percent_reward > 0, CampaignError::NoReward);
+
+                let reward: u64 = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals / (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 * 100;
+                let to_transfer = {
+                    if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
+                    {
+                        reward
+                    }
+                    else 
+                    {
+                        (*ctx.accounts.campaign_assets_account).remaining_token 
+                    }
+                };
+
+                claim_transfer_tokens_in_decimals(&ctx, to_transfer)?;
+
+                (*ctx.accounts.campaign_handles_account).handles[i].claimed = true;
+                (*ctx.accounts.campaign_assets_account).remaining_token = {
+                    if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
+                    {
+                        (*ctx.accounts.campaign_assets_account).remaining_token - reward
+                    }
+                    else 
+                    {
+                        0    
+                    }
+                };
+                return Ok(())
+            }
+            i = i + 1;
+        }
+
+        err!(CampaignError::NotRegistered)
+    }
 }
 
 // TODO: To optimize. This is almost the same function as campaign_transfer_tokens
@@ -523,57 +611,3 @@ fn claim_transfer_tokens_in_decimals(
     msg!("Tokens transferred successfully.");
     Ok(())
 }
-
-#[derive(Accounts)]
-#[instruction(_id_config: u64, _id_db: u64, _campaign_counter: u64)]
-pub struct AdminSendRewardPercentages<'info> {
-    #[account(
-        has_one = admin,
-        seeds = [b"admin-cf", &_id_config.to_le_bytes()],
-        bump
-    )]
-    admin_config: Account<'info, AdminConfig>,
-    admin: Signer<'info>,
-    #[account(
-        mut,
-        seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
-        bump
-    )]
-    campaign_info_account: Box<Account<'info, CampaignInfo>>,
-    #[account(
-        mut,
-        seeds = [b"cpn_hndl", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
-        bump
-    )]
-    campaign_handles_account: Box<Account<'info, CampaignHandles>>,
-    system_program: Program<'info, System>,
-}
-
-pub fn admin_send_reward_percentages(
-    ctx: Context<AdminSendRewardPercentages>,
-    _id_config: u64,
-    _id_db: u64,
-    _campaign_counter: u64,
-    rewards: Vec<UserReward>,
-) -> Result<()> {
-    require!((*ctx.accounts.campaign_info_account).state == CampaignState::Open, CampaignError::NotOpen);
-    require!((*ctx.accounts.campaign_handles_account).handles.len() == rewards.len(), CampaignError::InvalidHandles);
-    let clock: Clock = Clock::get()?;
-    require!((*ctx.accounts.campaign_info_account).end_unix_timestamp < clock.unix_timestamp, CampaignError::TimeNotElapsed);
-
-    let mut i = 0;
-    let mut percentage_acc: u8 = 0;
-
-    while i < (*ctx.accounts.campaign_handles_account).handles.len() {
-        require!((*ctx.accounts.campaign_handles_account).handles[i].handle_name == rewards[i].name, CampaignError::InvalidHandles);
-        percentage_acc += rewards[i].percentage;
-        (*ctx.accounts.campaign_handles_account).handles[i].percent_reward = rewards[i].percentage;
-        (*ctx.accounts.campaign_handles_account).handles[i].claimed = false;
-        i = i + 1;
-    }
-    require!(percentage_acc == 100, CampaignError::InvalidPercentagesForRewards);
-
-    (*ctx.accounts.campaign_info_account).state = CampaignState::Closed;
-    Ok(())
-}
-
