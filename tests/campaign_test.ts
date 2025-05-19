@@ -169,6 +169,7 @@ describe('create_campaign', () => {
         tokenName: "MyToken",
         tokenSymbol: "MTO",
         tokenDecimals: 9,
+        scoreMinimal: new BN(0),
         };   
 
         let campaignInitAccounts = {
@@ -186,6 +187,7 @@ describe('create_campaign', () => {
             params.keywords,
             params.beginTimestamp,
             params.endTimestamp,
+            params.scoreMinimal,
         )
         .accounts(campaignInitAccounts)
         .signers([payer.payer]) 
