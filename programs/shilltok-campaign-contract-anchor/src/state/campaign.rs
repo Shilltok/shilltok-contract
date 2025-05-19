@@ -36,7 +36,8 @@ pub enum CampaignState {
     HandlesReady,
     AssetsReady,
     Open,
-    Closed
+    Closed,
+    ClosedWithNoReward,
 }
 
 #[account]
@@ -52,6 +53,9 @@ pub struct CampaignInfo {
     pub state: CampaignState,
     pub id_db: u64,
     pub campaign_counter: u64,
+    pub creator: Pubkey,
+    pub score_minimal: u64,
+    pub actual_score: u64,
 }
 
 #[account]
@@ -66,6 +70,7 @@ pub struct CampaignAssets {
     pub token_amount_in_decimals: u64,
     pub remaining_token: u64,
     pub copied_service_fee: ServiceFee,
+    pub refunded: bool,
 }
 
 #[account]
