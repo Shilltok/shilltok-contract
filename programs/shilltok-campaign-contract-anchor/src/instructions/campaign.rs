@@ -260,6 +260,10 @@ pub fn open_campaign(
             },
         );
         system_program::transfer(cpi_context, campaign_database.service_fee[service_fee_index].lamport_fee as u64)?;
+
+        msg!(
+            "Campaign creator transfered {} SOL as a fee", campaign_database.service_fee[service_fee_index].lamport_fee 
+        );
     }
 
     // Transfer token (fee and storage for reward)
@@ -268,9 +272,16 @@ pub fn open_campaign(
     if campaign_database.service_fee[service_fee_index].token_fee_percentage > 0 {
         fee_token_to_transfer = token_amount_in_decimals * campaign_database.service_fee[service_fee_index].token_fee_percentage as u64 / 100;
         campaign_transfer_tokens_in_decimals(&ctx, fee_token_to_transfer, true)?;
+        msg!(
+            "Campaign creator transfered {} tokens as a fee", fee_token_to_transfer
+        );
     }
     let token_to_transfer = token_amount_in_decimals - fee_token_to_transfer;
     campaign_transfer_tokens_in_decimals(&ctx, token_to_transfer, false)?;
+
+    msg!(
+        "Campaign creator gave {} {} tokens for the campaign", token_to_transfer, token_symbol
+    );
 
     (*ctx.accounts.campaign_info_account).state = CampaignState::Open;
     (*ctx.accounts.campaign_assets_account).mint_account_key = ctx.accounts.mint_account.key();
@@ -557,6 +568,11 @@ pub fn claim(
                         0    
                     }
                 };
+
+                msg!(
+                    "Claim {} percent of {}, remain {}", (*ctx.accounts.campaign_handles_account).handles[i].percent_reward, to_transfer, (*ctx.accounts.campaign_assets_account).remaining_token
+                );
+
                 return Ok(())
             }
             i = i + 1;
@@ -582,6 +598,9 @@ fn claim_transfer_tokens_in_decimals(
     );
     msg!(
         "To Token Address: {}", &ctx.accounts.recipient_token_account.key()
+    );
+    msg!(
+        "Amount: {}", token_amount_in_decimals
     );
 
     let id_db_bytes = ctx.accounts.campaign_info_account.id_db.to_le_bytes();
