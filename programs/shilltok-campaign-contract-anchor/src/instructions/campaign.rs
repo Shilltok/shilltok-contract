@@ -543,7 +543,7 @@ pub fn claim(
                 require!(!(*ctx.accounts.campaign_handles_account).handles[i].claimed, CampaignError::AlreadyClaimed);
                 require!(!(*ctx.accounts.campaign_handles_account).handles[i].percent_reward > 0, CampaignError::NoReward);
 
-                let reward: u64 = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals / (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 * 100;
+                let reward: u64 = (*ctx.accounts.campaign_assets_account).token_amount_in_decimals * (*ctx.accounts.campaign_handles_account).handles[i].percent_reward as u64 / 100;
                 let to_transfer = {
                     if reward < (*ctx.accounts.campaign_assets_account).remaining_token 
                     {
