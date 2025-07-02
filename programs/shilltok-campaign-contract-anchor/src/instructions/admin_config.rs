@@ -22,10 +22,12 @@ pub struct CreateAdminConfig<'info> {
 pub fn create_admin_config(
     ctx: Context<CreateAdminConfig>,
     id_config: u64,
+    backend: Pubkey,
     project_wallet: Pubkey,
 ) -> Result<()> {
     *ctx.accounts.admin_config = AdminConfig {
         admin: ctx.accounts.admin.key(),
+        backend,
         project_wallet,
         new_admin: None,
         id_config,
@@ -105,5 +107,28 @@ pub fn update_project_wallet(
     project_wallet: Pubkey,
 ) -> Result<()> {
     ctx.accounts.admin_config.project_wallet = project_wallet;
+    Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(_id_config: u64)]
+pub struct UpdateBackend<'info> {
+    admin: Signer<'info>,
+    #[account(
+        has_one = admin,
+        mut,
+        seeds = [b"admin-cf", &_id_config.to_le_bytes()],
+        bump
+    )]
+    admin_config: Account<'info, AdminConfig>,
+    system_program: Program<'info, System>,
+}
+
+pub fn update_backend(
+    ctx: Context<UpdateBackend>,
+    _id_config: u64,
+    backend: Pubkey,
+) -> Result<()> {
+    ctx.accounts.admin_config.backend = backend;
     Ok(())
 }

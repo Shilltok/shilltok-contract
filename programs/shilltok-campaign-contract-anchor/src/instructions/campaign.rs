@@ -398,15 +398,15 @@ pub fn register_handle(
 
 #[derive(Accounts)]
 #[instruction(_id_config: u64, _id_db: u64, _campaign_counter: u64)]
-pub struct AdminSendRewardPercentages<'info> {
+pub struct BackendSendRewardPercentages<'info> {
     #[account(
-        has_one = admin,
+        has_one = backend,
         seeds = [b"admin-cf", &_id_config.to_le_bytes()],
         bump
     )]
     admin_config: Account<'info, AdminConfig>,
 
-    admin: Signer<'info>,
+    backend: Signer<'info>,
     #[account(
         mut,
         seeds = [b"cpn_info", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()],
@@ -424,8 +424,8 @@ pub struct AdminSendRewardPercentages<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn admin_send_reward_percentages(
-    ctx: Context<AdminSendRewardPercentages>,
+pub fn backend_send_reward_percentages(
+    ctx: Context<BackendSendRewardPercentages>,
     _id_config: u64,
     _id_db: u64,
     _campaign_counter: u64,

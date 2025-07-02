@@ -1,5 +1,6 @@
 use crate::{constants::ANCHOR_DESCRIMINATOR_SIZE, state::CampaignDatabase, state::ServiceFee, state::AdminConfig};
 use anchor_lang::prelude::*;
+use crate::errors::CampaignError;
 
 #[derive(Accounts)]
 #[instruction(_id_config: u64, id_db: u64)]

@@ -18,9 +18,10 @@ pub mod shilltok_campaign_program {
     pub fn create_admin_config(
         ctx: Context<CreateAdminConfig>,
         id_config: u64,
+        backend: Pubkey,
         project_wallet: Pubkey,
     ) -> Result<()> {
-        admin_config::create_admin_config(ctx, id_config, project_wallet)
+        admin_config::create_admin_config(ctx, id_config, backend, project_wallet)
     }
 
     pub fn set_new_admin(
@@ -44,6 +45,14 @@ pub mod shilltok_campaign_program {
         project_wallet: Pubkey,
     ) -> Result<()> {
         admin_config::update_project_wallet(ctx, id_config, project_wallet)
+    }
+
+    pub fn update_backend(
+        ctx: Context<UpdateBackend>,
+        id_config: u64,
+        backend: Pubkey,
+    ) -> Result<()> {
+        admin_config::update_backend(ctx, id_config, backend)
     }
 
     // Campaign database instructions
@@ -109,14 +118,14 @@ pub mod shilltok_campaign_program {
     }
 
     pub fn admin_send_reward_percentages(
-        ctx: Context<AdminSendRewardPercentages>,
+        ctx: Context<BackendSendRewardPercentages>,
         id_config: u64,
         id_db: u64,
         campaign_counter: u64,
         rewards: Vec<UserReward>,
         score: u64,
     ) -> Result<()> {
-        campaign::admin_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards, score)
+        campaign::backend_send_reward_percentages(ctx, id_config, id_db, campaign_counter, rewards, score)
     }
 
     pub fn register_handle(

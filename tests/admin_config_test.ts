@@ -12,10 +12,21 @@ import { assert } from 'chai'
 describe('create_admin_config', () => {
     // Configure the client to use the local cluster.
     const projectWallet = new Keypair();
+    const backend = new Keypair();
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
     const payer = provider.wallet as anchor.Wallet;
     const program = anchor.workspace.ShilltokCampaignProgram as Program<ShilltokCampaignProgram>
+
+    it('create_seed_for_admin_config', async () => {
+        const idConfig = new BN(222046201);
+
+        const [adminConfig, _] = anchor.web3.PublicKey.findProgramAddressSync(
+            [Buffer.from('admin-cf'), idConfig.toArrayLike(Buffer, "le", 8)],
+            new anchor.web3.PublicKey("M5du56w3AvJPiX148aBhRTmALn87TpqvnLrzcbgiL5X"),
+        )
+        console.log(`adminConfig seed: ${adminConfig}`);
+    })
 
     it('create_admin_config_success', async () => {
         const idConfig = new BN(123456789);
@@ -27,13 +38,14 @@ describe('create_admin_config', () => {
 
         const adminConfigInfo = {
             id: idConfig,
+            backend: backend.publicKey,
             projectWallet: projectWallet.publicKey
         };
 
         //anchor automatically fills the user of Account type Signer with the provider and the SystemProgram
         //console.log("Program: ", await program.methods.createAdminConfig(adminConfigInfo.id, adminConfigInfo.projectWallet));
         await program.methods
-            .createAdminConfig(adminConfigInfo.id, adminConfigInfo.projectWallet)
+            .createAdminConfig(adminConfigInfo.id, adminConfigInfo.backend, adminConfigInfo.projectWallet)
             .accounts({
                 adminConfig,
             })
@@ -42,6 +54,7 @@ describe('create_admin_config', () => {
         const adminConfigAccount = await program.account.adminConfig.fetch(adminConfig)
         expect(adminConfigAccount.idConfig.toNumber()).to.equal(123456789)
         expect(adminConfigAccount.admin.toBase58()).to.equal(payer.publicKey.toBase58())
+        expect(adminConfigAccount.backend.toBase58()).to.equal(backend.publicKey.toBase58())
         expect(adminConfigAccount.projectWallet.toBase58()).to.equal(projectWallet.publicKey.toBase58())
         expect(adminConfigAccount.newAdmin).to.equal(null)
 
@@ -58,13 +71,14 @@ describe('create_admin_config', () => {
 
         const adminConfigInfo = {
             id: idConfig,
+            backend: backend.publicKey,
             projectWallet: projectWallet.publicKey
         };
 
         //anchor automatically fills the user of Account type Signer with the provider and the SystemProgram
         try {
             await program.methods
-            .createAdminConfig(adminConfigInfo.id, adminConfigInfo.projectWallet)
+            .createAdminConfig(adminConfigInfo.id, adminConfigInfo.backend, adminConfigInfo.projectWallet)
             .accounts({
                 adminConfig,
             })
@@ -83,9 +97,9 @@ describe('create_admin_config', () => {
 /**********************************************************************************/
 /* Helpers */
 /**********************************************************************************/
-async function create_admin_config(adminConfig, idConfig, payer, program, projectWallet) {
+async function create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet) {
     await program.methods
-        .createAdminConfig(idConfig, projectWallet.publicKey)
+        .createAdminConfig(idConfig, backend.publicKey, projectWallet.publicKey)
         .accounts({
             adminConfig,
         })
@@ -94,6 +108,7 @@ async function create_admin_config(adminConfig, idConfig, payer, program, projec
     const adminConfigAccount = await program.account.adminConfig.fetch(adminConfig);
     expect(adminConfigAccount.idConfig.toNumber()).to.equal(idConfig.toNumber())
     expect(adminConfigAccount.admin.toBase58()).to.equal(payer.publicKey.toBase58())
+    expect(adminConfigAccount.backend.toBase58()).to.equal(backend.publicKey.toBase58())
     expect(adminConfigAccount.projectWallet.toBase58()).to.equal(projectWallet.publicKey.toBase58())
     expect(adminConfigAccount.newAdmin).to.equal(null)
   }
@@ -104,6 +119,7 @@ async function create_admin_config(adminConfig, idConfig, payer, program, projec
 describe('set_new_admin', () => {
     // Configure the client to use the local cluster.
     const projectWallet = new Keypair();
+    const backend = new Keypair();
     const alice = new Keypair();
     const provider = anchor.AnchorProvider.local()
     anchor.setProvider(provider)
@@ -118,7 +134,7 @@ describe('set_new_admin', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         await program.methods
         .setNewAdmin(idConfig, alice.publicKey)
@@ -139,7 +155,7 @@ describe('set_new_admin', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         try {
             await program.methods
@@ -164,6 +180,7 @@ describe('set_new_admin', () => {
 describe('update_admin', () => {
     // Configure the client to use the local cluster.
     const projectWallet = new Keypair();
+    const backend = new Keypair();
     const alice = new Keypair();
     const bob = new Keypair();
     const provider = anchor.AnchorProvider.local()
@@ -179,7 +196,7 @@ describe('update_admin', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         try {
             await program.methods
@@ -207,7 +224,7 @@ describe('update_admin', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         await program.methods
         .setNewAdmin(idConfig, alice.publicKey)
@@ -242,7 +259,7 @@ describe('update_admin', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         await program.methods
         .setNewAdmin(idConfig, alice.publicKey)
@@ -297,6 +314,7 @@ describe('update_admin', () => {
 describe('update_project_wallet', () => {
     // Configure the client to use the local cluster.
     const projectWallet = new Keypair();
+    const backend = new Keypair();
     const newProjectWallet = new Keypair();
     const alice = new Keypair();
     const provider = anchor.AnchorProvider.local()
@@ -312,7 +330,7 @@ describe('update_project_wallet', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         try {
             await program.methods
@@ -337,7 +355,7 @@ describe('update_project_wallet', () => {
             program.programId,
         )
 
-        await create_admin_config(adminConfig, idConfig, payer, program, projectWallet);
+        await create_admin_config(adminConfig, idConfig, payer, program, backend, projectWallet);
 
         await program.methods
         .updateProjectWallet(idConfig, newProjectWallet.publicKey)
