@@ -13,7 +13,7 @@ shilltok_campaign_contract_anchor = "EpgXpXKz4QHfGxr5QnpELaXu9quNahhfJzYikLDPGxk
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"  # or "mainnet", "testnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

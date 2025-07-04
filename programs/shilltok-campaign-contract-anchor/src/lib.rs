@@ -8,7 +8,7 @@ pub mod instructions;
 pub mod state;
 pub mod errors;
 
-declare_id!("EpgXpXKz4QHfGxr5QnpELaXu9quNahhfJzYikLDPGxkz");
+declare_id!("BgoHgQ7GPcfqVrka14PFwNCyX1Bh557xdphv2Uoy97bw");
 
 #[program]
 pub mod shilltok_campaign_program {
