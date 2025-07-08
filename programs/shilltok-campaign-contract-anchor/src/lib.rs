@@ -117,7 +117,7 @@ pub mod shilltok_campaign_program {
         campaign::open_campaign(ctx, id_db, campaign_counter, token_amount_in_decimals, service_fee_index as usize, token_name, token_symbol, token_decimals)
     }
 
-    pub fn admin_send_reward_percentages(
+    pub fn backend_send_reward_percentages(
         ctx: Context<BackendSendRewardPercentages>,
         id_config: u64,
         id_db: u64,
