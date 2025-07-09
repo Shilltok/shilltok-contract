@@ -101,7 +101,7 @@ pub struct InitCampaignHandles<'info> {
     #[account(
         init,
         payer = user,
-        space = ANCHOR_DESCRIMINATOR_SIZE + CampaignInfo::INIT_SPACE,
+        space = ANCHOR_DESCRIMINATOR_SIZE + CampaignHandles::INIT_SPACE,
         seeds = [b"cpn_hndl", &_id_db.to_le_bytes(), &_campaign_counter.to_le_bytes()], 
         bump,
     )]

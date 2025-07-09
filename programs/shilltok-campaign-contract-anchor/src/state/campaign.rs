@@ -76,7 +76,7 @@ pub struct CampaignAssets {
 #[account]
 #[derive(InitSpace)]
 pub struct CampaignHandles {
-    #[max_len(MAX_NUMBER_OF_X_HANDLE_PER_CAMPAIGN, Handle::INIT_SPACE)]
+    #[max_len(MAX_NUMBER_OF_X_HANDLE_PER_CAMPAIGN)]
     pub handles: Vec<Handle>,
 }
 
