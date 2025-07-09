@@ -22,11 +22,12 @@ pub struct CreateAdminConfig<'info> {
 pub fn create_admin_config(
     ctx: Context<CreateAdminConfig>,
     id_config: u64,
+    admin: Pubkey,
     backend: Pubkey,
     project_wallet: Pubkey,
 ) -> Result<()> {
     *ctx.accounts.admin_config = AdminConfig {
-        admin: ctx.accounts.admin.key(),
+        admin,
         backend,
         project_wallet,
         new_admin: None,

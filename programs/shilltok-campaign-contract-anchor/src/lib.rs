@@ -18,10 +18,11 @@ pub mod shilltok_campaign_program {
     pub fn create_admin_config(
         ctx: Context<CreateAdminConfig>,
         id_config: u64,
+        admin : Pubkey,
         backend: Pubkey,
         project_wallet: Pubkey,
     ) -> Result<()> {
-        admin_config::create_admin_config(ctx, id_config, backend, project_wallet)
+        admin_config::create_admin_config(ctx, id_config, admin, backend, project_wallet)
     }
 
     pub fn set_new_admin(
