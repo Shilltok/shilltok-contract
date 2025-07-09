@@ -12,7 +12,7 @@ use anchor_lang::prelude::*;
 pub const ANCHOR_DESCRIMINATOR_SIZE: usize = 8;
 
 // Invalid pubkey
-pub const ORIGINATOR_ADMIN_PUBKEY: Pubkey = pubkey!("9WA5RWh7M8aHa6Z23deehGTiQtSw2oTQaKu5j4Vhhz1y");
+pub const ORIGINATOR_ADMIN_PUBKEY: Pubkey = pubkey!("2ue1iyQvtFKcLfU16x2eFkdXXp1ckzwdUFR1JRLsPyNR");
 
 pub const CAMPAIGN_NAME_MIN_SIZE: usize = 5;
 pub const CAMPAIGN_NAME_MAX_SIZE: usize = 50;
